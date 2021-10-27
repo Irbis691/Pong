@@ -151,7 +151,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="BulletManager.cpp" />
     <ClCompile Include="Pong.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="BulletManager.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
