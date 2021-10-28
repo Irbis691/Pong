@@ -1,11 +1,14 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include "BulletManager.h"
+#include "AABBTree.h"
+// #include "shared"
 
 #define SCREEN_WIDTH 1920
 #define SCREEN_HEIGHT 1080
 
-int main() {
+int main()
+{
 	constexpr int BulletAmount = 20;
 	constexpr float BulletStartDirectionXCoord = -0.8f;
 	constexpr float BulletEndDirectionXCoord = 0.8f;
@@ -21,14 +24,16 @@ int main() {
 	GLFWwindow* window;
 
 	// Initialize the library
-	if (!glfwInit()) {
+	if (!glfwInit())
+	{
 		return -1;
 	}
 
 	// Create a windowed mode window and its OpenGL context
 	window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Pong Window", NULL, NULL);
 
-	if (!window) {
+	if (!window)
+	{
 		glfwTerminate();
 		return -1;
 	}
@@ -50,38 +55,48 @@ int main() {
 	std::vector<float> WallCoords;
 	WallCoords.reserve(WallsCollsAmount);
 
+	AABBTree* Tree = new AABBTree(WallsCollsAmount);
+
 	float CurrentXCoord = WallsStartXCoord;
 	float CurrentYCoord = WallsStartYCoord;
-	for (int i = 0; i < WallsCoordsAmount; i += WallCoordsNumber) {
-		if (i % (WallsCollsAmount * WallCoordsNumber) == 0) {
+	for (int i = 0; i < WallsCoordsAmount; i += WallCoordsNumber)
+	{
+		if (i % (WallsCollsAmount * WallCoordsNumber) == 0)
+		{
 			CurrentXCoord = WallsStartXCoord;
 			CurrentYCoord += 10;
 		}
 		WallCoords.push_back(CurrentXCoord);
 		WallCoords.push_back(CurrentYCoord);
+
+		Tree->insertObject(std::make_shared<IAABB>(CurrentXCoord, CurrentYCoord, CurrentXCoord + 10, CurrentYCoord));
+
 		CurrentXCoord += 10;
 	}
 
 	BulletManager* Manager = new BulletManager(WallCoords);
 
 	int nbFrames = 0;
-	const Float2 StartPos = Float2{ SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 };
+	const Float2 StartPos = Float2{SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2};
 	float StartTime = glfwGetTime();
 
 	const float XCoordRange = abs(BulletStartDirectionXCoord) + abs(BulletEndDirectionXCoord);
 	const float XCoordRangeStep = XCoordRange / BulletAmount;
-	for (int i = 0; i < BulletAmount; ++i) {
+	for (int i = 0; i < BulletAmount; ++i)
+	{
 		const float CurrentXCoord = BulletStartDirectionXCoord + i * XCoordRangeStep;
 		const float CurrentYCoord = sqrt(1 - CurrentXCoord * CurrentXCoord);
-		const Float2 StartDirection = Float2{ CurrentXCoord, CurrentYCoord };
+		const Float2 StartDirection = Float2{CurrentXCoord, CurrentYCoord};
 		Manager->Fire(StartPos, StartDirection, LifeTime, StartTime, Speed);
 	}
 
 	// Loop until the user closes the window
-	while (!glfwWindowShouldClose(window)) {
+	while (!glfwWindowShouldClose(window))
+	{
 		const float CurrentTime = glfwGetTime();
 		nbFrames++;
-		if (CurrentTime - StartTime >= 1.0) {
+		if (CurrentTime - StartTime >= 1.0)
+		{
 			printf("%f ms/frame\n", 1000.0 / static_cast<float>(nbFrames));
 			nbFrames = 0;
 			StartTime += 1.0;
@@ -100,9 +115,9 @@ int main() {
 		Manager->Update(CurrentTime);
 
 		const std::vector<Bullet>& Bullets = Manager->GetBullets();
-		for (const Bullet& b : Bullets) 
+		for (const Bullet& b : Bullets)
 		{
-			const GLfloat pointVertex[] = { b.Position.X, b.Position.Y };
+			const GLfloat pointVertex[] = {b.Position.X, b.Position.Y};
 			glVertexPointer(2, GL_FLOAT, 0, pointVertex);
 			glDrawArrays(GL_POINTS, 0, 1);
 		}
@@ -111,8 +126,9 @@ int main() {
 		std::vector<GLfloat> LineVertices;
 		const size_t WallsDoubleNumber = CurrentWalls.size();
 		LineVertices.reserve(WallsDoubleNumber);
-		for (int i = 0; i < WallsDoubleNumber; ++i) {
-			LineVertices.push_back({ CurrentWalls[i] });
+		for (int i = 0; i < WallsDoubleNumber; ++i)
+		{
+			LineVertices.push_back({CurrentWalls[i]});
 		}
 
 		glVertexPointer(WallCoordsNumber, GL_FLOAT, 0, LineVertices.data());

@@ -2,7 +2,8 @@
 
 #include <vector>
 
-struct Float2 {
+struct Float2
+{
 	float X;
 	float Y;
 };
@@ -15,15 +16,18 @@ struct Bullet
 	float LifeTime;
 	float Speed;
 
-	bool IsAlive(float CurrentTime) const {
+	bool IsAlive(float CurrentTime) const
+	{
 		return BirthTime + LifeTime > CurrentTime;
 	}
 };
 
-class BulletManager 
+class BulletManager
 {
 public:
-	BulletManager(std::vector<float> InWalls) : Walls(InWalls) {};
+	BulletManager(std::vector<float> InWalls) : Walls(InWalls)
+	{
+	};
 
 	void Update(float time);
 	void Fire(const Float2& StartPosistion, const Float2& StartDirection, float Speed, float StartTime, float LifeTime);
