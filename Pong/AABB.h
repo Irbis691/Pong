@@ -31,6 +31,19 @@ public:
 		surfaceArea = calculateSurfaceArea();
 	}
 
+	friend bool operator==(const AABB& lhs, const AABB& rhs)
+	{
+		return lhs.minX == rhs.minX
+			&& lhs.minY == rhs.minY
+			&& lhs.maxX == rhs.maxX
+			&& lhs.maxY == rhs.maxY;
+	}
+
+	friend bool operator!=(const AABB& lhs, const AABB& rhs)
+	{
+		return !(lhs == rhs);
+	}
+
 	bool overlaps(const AABB& other) const
 	{
 		// y is deliberately first in the list of checks below as it is seen as more likely than things
@@ -65,6 +78,13 @@ public:
 		);
 	}
 
-	float getWidth() const { return maxX - minX; }
-	float getHeight() const { return maxY - minY; }
+	float getWidth() const
+	{
+		return maxX - minX;
+	}
+
+	float getHeight() const
+	{
+		return maxY - minY;
+	}
 };

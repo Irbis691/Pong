@@ -1,6 +1,7 @@
 #include "AABBTree.h"
 #include <cassert>
 #include <stack>
+#include "IAABB.h"
 
 AABBTree::AABBTree(unsigned initialSize) : _rootNodeIndex(AABB_NULL_NODE), _allocatedNodeCount(0),
                                            _nextFreeNodeIndex(0), _nodeCapacity(initialSize), _growthSize(initialSize)
@@ -55,7 +56,7 @@ void AABBTree::deallocateNode(unsigned nodeIndex)
 	_allocatedNodeCount--;
 }
 
-void AABBTree::insertObject(const std::shared_ptr<AABB>& object)
+void AABBTree::insertObject(const std::shared_ptr<IAABB>& object)
 {
 	unsigned nodeIndex = allocateNode();
 	AABBNode& node = _nodes[nodeIndex];
@@ -67,7 +68,7 @@ void AABBTree::insertObject(const std::shared_ptr<AABB>& object)
 	_objectNodeIndexMap[object] = nodeIndex;
 }
 
-void AABBTree::removeObject(const std::shared_ptr<AABB>& object)
+void AABBTree::removeObject(const std::shared_ptr<IAABB>& object)
 {
 	unsigned nodeIndex = _objectNodeIndexMap[object];
 	removeLeaf(nodeIndex);
@@ -75,15 +76,15 @@ void AABBTree::removeObject(const std::shared_ptr<AABB>& object)
 	_objectNodeIndexMap.erase(object);
 }
 
-void AABBTree::updateObject(const std::shared_ptr<AABB>& object)
+void AABBTree::updateObject(const std::shared_ptr<IAABB>& object)
 {
 	unsigned nodeIndex = _objectNodeIndexMap[object];
 	updateLeaf(nodeIndex, object->getAABB());
 }
 
-std::forward_list<std::shared_ptr<AABB>> AABBTree::queryOverlaps(const std::shared_ptr<AABB>& object) const
+std::forward_list<std::shared_ptr<IAABB>> AABBTree::queryOverlaps(const std::shared_ptr<IAABB>& object) const
 {
-	std::forward_list<std::shared_ptr<AABB>> overlaps;
+	std::forward_list<std::shared_ptr<IAABB>> overlaps;
 	std::stack<unsigned> stack;
 	AABB testAabb = object->getAABB();
 

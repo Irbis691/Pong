@@ -2,18 +2,42 @@
 #include <GLFW/glfw3.h>
 #include "BulletManager.h"
 #include "AABBTree.h"
-// #include "shared"
 
 #define SCREEN_WIDTH 1920
 #define SCREEN_HEIGHT 1080
 
+class AABBImpl : public IAABB
+{
+	float minX;
+	float minY;
+	float maxX;
+	float maxY;
+
+public:
+	AABBImpl(float min_x, float min_y, float max_x, float max_y)
+		: minX(min_x),
+		  minY(min_y),
+		  maxX(max_x),
+		  maxY(max_y)
+	{
+	}
+
+	AABB getAABB() const override;
+};
+
+AABB AABBImpl::getAABB() const
+{
+	return {minX, minY, maxX, maxY};
+}
+
+
 int main()
 {
-	constexpr int BulletAmount = 20;
+	constexpr int BulletAmount = 5;
 	constexpr float BulletStartDirectionXCoord = -0.8f;
 	constexpr float BulletEndDirectionXCoord = 0.8f;
-	constexpr int WallsCollsAmount = 100;
-	constexpr int WallsRowsAmount = 10;
+	constexpr int WallsCollsAmount = 10;
+	constexpr int WallsRowsAmount = 1;
 	constexpr int WallCoordsNumber = 2;
 	constexpr int WallsCoordsAmount = WallsRowsAmount * WallsCollsAmount * WallCoordsNumber;
 	constexpr float WallsStartXCoord = 480.0f;
@@ -69,7 +93,12 @@ int main()
 		WallCoords.push_back(CurrentXCoord);
 		WallCoords.push_back(CurrentYCoord);
 
-		Tree->insertObject(std::make_shared<IAABB>(CurrentXCoord, CurrentYCoord, CurrentXCoord + 10, CurrentYCoord));
+		float minX = CurrentXCoord;
+		float minY = CurrentYCoord;
+		float maxX = CurrentXCoord + 10;
+		float maxY = CurrentYCoord;
+
+		Tree->insertObject(std::make_shared<AABBImpl>(minX, minY, maxX, maxY));
 
 		CurrentXCoord += 10;
 	}
