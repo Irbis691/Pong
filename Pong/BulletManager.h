@@ -31,10 +31,10 @@ public:
 	};
 
 	void Update(float time);
-	void Fire(const Float2& StartPosistion, const Float2& StartDirection, float Speed, float StartTime, float LifeTime);
+	void Fire(const Float2& StartPosistion, const Float2& StartDirection, float StartTime, float LifeTime, float Speed);
 	const std::vector<Bullet>& GetBullets();
 	// const std::vector<float>& GetWalls();
-	const AABBTree& GetWalls();
+	std::vector<float> GetWalls();
 
 private:
 	std::vector<Bullet> Bullets;

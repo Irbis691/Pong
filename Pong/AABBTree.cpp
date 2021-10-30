@@ -19,9 +19,27 @@ AABBTree::~AABBTree()
 {
 }
 
+bool AABBTree::IsLeaf(const std::shared_ptr<IAABB>& object) const
+{
+	return _nodes[_objectNodeIndexMap.at(object)].isLeaf();
+}
+
+std::vector<AABB> AABBTree::GetNodes() const
+{
+	std::vector<AABB> Nodes;
+	for (auto it = _objectNodeIndexMap.begin(); it != _objectNodeIndexMap.end(); ++it)
+	{
+		if (_nodes[it->second].isLeaf())
+		{
+			Nodes.push_back((*it->first).getAABB());
+		}
+	}
+	return Nodes;
+}
+
 unsigned AABBTree::allocateNode()
 {
-	// if we have no free tree nodes then grow the pool
+	// if we have no free tree GetNodes then grow the pool
 	if (_nextFreeNodeIndex == AABB_NULL_NODE)
 	{
 		assert(_allocatedNodeCount == _nodeCapacity);

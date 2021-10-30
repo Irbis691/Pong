@@ -1,5 +1,9 @@
 #include "BulletManager.h"
 
+#include <iostream>
+
+#include "AABBImpl.h"
+
 #define SEGMENT_COORDS_AMOUNT 4
 
 // float BulletManager::Area(Float2 A, Float2 B, Float2 C)
@@ -42,16 +46,26 @@
 // 	return -1;
 // }
 
-const AABBTree& BulletManager::GetWalls()
+std::vector<float> BulletManager::GetWalls()
 {
-	return WallsTree;
+	std::vector<float> Result;
+
+	for (const auto& AABBWall : WallsTree.GetNodes())
+	{
+		Result.push_back(AABBWall.minX);
+		Result.push_back(AABBWall.minY);
+		Result.push_back(AABBWall.maxX);
+		Result.push_back(AABBWall.maxY);
+	}
+
+	return Result;
 }
 
 const std::vector<Bullet>& BulletManager::GetBullets()
 {
 	return Bullets;
 }
-
+#pragma optimize("", off)
 void BulletManager::Update(float Time)
 {
 	for (Bullet& b : Bullets)
@@ -61,6 +75,37 @@ void BulletManager::Update(float Time)
 			Float2 PrevPos = {b.Position.X, b.Position.Y};
 			b.Position.X += b.Direction.X * b.Speed;
 			b.Position.Y += b.Direction.Y * b.Speed;
+
+			if (b.Position.Y >= 810)
+			{
+				std::cout << "qwe" << std::endl;
+			}
+
+			auto WallsToRemove = WallsTree.queryOverlaps(
+				std::make_shared<AABBImpl>(PrevPos.X, PrevPos.Y, b.Position.X, b.Position.Y));
+
+			for (const auto Wall : WallsToRemove)
+			{
+				if (WallsTree.IsLeaf(Wall))
+				{
+					WallsTree.removeObject(Wall);
+					const Float2 FallingVector = {b.Position.X - PrevPos.X, b.Position.Y - PrevPos.Y};
+					const auto AABB = Wall->getAABB();
+					const Float2 Normal = {AABB.maxY - AABB.maxY, AABB.maxX - AABB.minX};
+					const float NormalLength = sqrt(Normal.X * Normal.X + Normal.Y * Normal.Y);
+					const Float2 NormalNormalized = {Normal.X / NormalLength, Normal.Y / NormalLength};
+					const float floatDotProduct = 2 * (FallingVector.X * NormalNormalized.X + FallingVector.Y *
+						NormalNormalized.Y);
+					const Float2 Subtrahend = {
+						floatDotProduct * NormalNormalized.X, floatDotProduct * NormalNormalized.Y
+					};
+					const Float2 Reflected = {FallingVector.X - Subtrahend.X, FallingVector.Y - Subtrahend.Y};
+					const float ReflectedLength = sqrt(Reflected.X * Reflected.X + Reflected.Y * Reflected.Y);
+					const Float2 NormalizedReflected = {Reflected.X / ReflectedLength, Reflected.Y / ReflectedLength};
+					b.Direction.X = NormalizedReflected.X;
+					b.Direction.Y = NormalizedReflected.Y;
+				}
+			}
 
 			// const int HitCoord = DoesHitTheWall(b.Position, PrevPos);
 			// if (HitCoord != -1)
@@ -88,13 +133,12 @@ void BulletManager::Update(float Time)
 			// 		Walls.erase(Walls.begin() + HitCoord);
 			// 	}
 			// }
-			WallsTree.queryOverlaps(std::make_shared<AABBImpl>(PrevPos.X, PrevPos.Y, b.Position.X, b.Position.Y));
 		}
 	}
 }
-
-void BulletManager::Fire(const Float2& StartPosistion, const Float2& StartDirection, float Speed, float StartTime,
-                         float LifeTime)
+#pragma optimize("", on)
+void BulletManager::Fire(const Float2& StartPosistion, const Float2& StartDirection, float StartTime, float LifeTime,
+                         float Speed)
 {
 	const float StartDirectionLenqgth = sqrt(StartDirection.X * StartDirection.X + StartDirection.Y * StartDirection.Y);
 	const Float2 StartDirectionNormalized = {

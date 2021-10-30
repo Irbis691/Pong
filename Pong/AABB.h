@@ -48,10 +48,10 @@ public:
 	{
 		// y is deliberately first in the list of checks below as it is seen as more likely than things
 		// collide on x,z but not on y than they do on y thus we drop out sooner on a y fail
-		return maxX > other.minX &&
-			minX < other.maxX &&
-			maxY > other.minY &&
-			minY < other.maxY;
+		return maxX >= other.minX &&
+			minX <= other.maxX &&
+			maxY >= other.minY &&
+			minY <= other.maxY;
 	}
 
 	bool contains(const AABB& other) const

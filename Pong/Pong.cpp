@@ -1,41 +1,17 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#include "AABBImpl.h"
 #include "BulletManager.h"
 
 #define SCREEN_WIDTH 1920
 #define SCREEN_HEIGHT 1080
 
-class AABBImpl : public IAABB
-{
-	float minX;
-	float minY;
-	float maxX;
-	float maxY;
-
-public:
-	AABBImpl(float min_x, float min_y, float max_x, float max_y)
-		: minX(min_x),
-		  minY(min_y),
-		  maxX(max_x),
-		  maxY(max_y)
-	{
-	}
-
-	AABB getAABB() const override;
-};
-
-AABB AABBImpl::getAABB() const
-{
-	return {minX, minY, maxX, maxY};
-}
-
-
 int main()
 {
-	constexpr int BulletAmount = 5;
+	constexpr int BulletAmount = 1;
 	constexpr float BulletStartDirectionXCoord = -0.8f;
 	constexpr float BulletEndDirectionXCoord = 0.8f;
-	constexpr int WallsCollsAmount = 10;
+	constexpr int WallsCollsAmount = 50;
 	constexpr int WallsRowsAmount = 1;
 	constexpr int WallCoordsNumber = 2;
 	constexpr int WallsCoordsAmount = WallsRowsAmount * WallsCollsAmount * WallCoordsNumber;
@@ -78,13 +54,13 @@ int main()
 	std::vector<float> WallCoords;
 	WallCoords.reserve(WallsCollsAmount);
 
-	AABBTree* Tree = new AABBTree(WallsCollsAmount);
+	AABBTree* Tree = new AABBTree(1);
 
 	float CurrentXCoord = WallsStartXCoord;
 	float CurrentYCoord = WallsStartYCoord;
 	for (int i = 0; i < WallsCoordsAmount; i += WallCoordsNumber)
 	{
-		if (i % (WallsCollsAmount * WallCoordsNumber) == 0)
+		if (i != 0 && i % (WallsCollsAmount * WallCoordsNumber) == 0)
 		{
 			CurrentXCoord = WallsStartXCoord;
 			CurrentYCoord += 10;
@@ -94,7 +70,7 @@ int main()
 
 		Tree->insertObject(std::make_shared<AABBImpl>(CurrentXCoord, CurrentYCoord, CurrentXCoord + 10, CurrentYCoord));
 
-		CurrentXCoord += 10;
+		CurrentXCoord += 20;
 	}
 
 	BulletManager* Manager = new BulletManager(*Tree);
@@ -110,7 +86,7 @@ int main()
 		const float CurrentXCoord = BulletStartDirectionXCoord + i * XCoordRangeStep;
 		const float CurrentYCoord = sqrt(1 - CurrentXCoord * CurrentXCoord);
 		const Float2 StartDirection = Float2{CurrentXCoord, CurrentYCoord};
-		Manager->Fire(StartPos, StartDirection, LifeTime, StartTime, Speed);
+		Manager->Fire(StartPos, {0, 1}, StartTime, LifeTime, Speed);
 	}
 
 	// Loop until the user closes the window
@@ -145,7 +121,7 @@ int main()
 			glDrawArrays(GL_POINTS, 0, 1);
 		}
 
-		const AABBTree& CurrentWalls = Manager->GetWalls();
+		const std::vector<float>& CurrentWalls = Manager->GetWalls();
 		std::vector<GLfloat> LineVertices;
 		const size_t WallsDoubleNumber = CurrentWalls.size();
 		LineVertices.reserve(WallsDoubleNumber);

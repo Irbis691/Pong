@@ -29,6 +29,17 @@ struct AABBNode
 
 class AABBTree
 {
+public:
+	AABBTree(unsigned initialSize);
+	~AABBTree();
+
+	bool IsLeaf(const std::shared_ptr<IAABB>& object) const;
+	std::vector<AABB> GetNodes() const;
+	void insertObject(const std::shared_ptr<IAABB>& object);
+	void removeObject(const std::shared_ptr<IAABB>& object);
+	void updateObject(const std::shared_ptr<IAABB>& object);
+	std::forward_list<std::shared_ptr<IAABB>> queryOverlaps(const std::shared_ptr<IAABB>& object) const;
+
 private:
 	std::map<std::shared_ptr<IAABB>, unsigned> _objectNodeIndexMap;
 	std::vector<AABBNode> _nodes;
@@ -44,13 +55,4 @@ private:
 	void removeLeaf(unsigned leafNodeIndex);
 	void updateLeaf(unsigned leafNodeIndex, const AABB& newAaab);
 	void fixUpwardsTree(unsigned treeNodeIndex);
-
-public:
-	AABBTree(unsigned initialSize);
-	~AABBTree();
-
-	void insertObject(const std::shared_ptr<IAABB>& object);
-	void removeObject(const std::shared_ptr<IAABB>& object);
-	void updateObject(const std::shared_ptr<IAABB>& object);
-	std::forward_list<std::shared_ptr<IAABB>> queryOverlaps(const std::shared_ptr<IAABB>& object) const;
 };

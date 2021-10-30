@@ -1,5 +1,6 @@
 #pragma once
 
+#include "IAABB.h"
 
 class AABBImpl : public IAABB {
 	float minX;
