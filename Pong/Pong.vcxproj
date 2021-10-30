@@ -151,12 +151,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="AABBImpl.cpp" />
     <ClCompile Include="AABBTree.cpp" />
     <ClCompile Include="BulletManager.cpp" />
     <ClCompile Include="Pong.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AABB.h" />
+    <ClInclude Include="AABBImpl.h" />
     <ClInclude Include="AABBTree.h" />
     <ClInclude Include="BulletManager.h" />
     <ClInclude Include="IAABB.h" />

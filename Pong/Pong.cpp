@@ -1,7 +1,6 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include "BulletManager.h"
-#include "AABBTree.h"
 
 #define SCREEN_WIDTH 1920
 #define SCREEN_HEIGHT 1080
@@ -93,17 +92,12 @@ int main()
 		WallCoords.push_back(CurrentXCoord);
 		WallCoords.push_back(CurrentYCoord);
 
-		float minX = CurrentXCoord;
-		float minY = CurrentYCoord;
-		float maxX = CurrentXCoord + 10;
-		float maxY = CurrentYCoord;
-
-		Tree->insertObject(std::make_shared<AABBImpl>(minX, minY, maxX, maxY));
+		Tree->insertObject(std::make_shared<AABBImpl>(CurrentXCoord, CurrentYCoord, CurrentXCoord + 10, CurrentYCoord));
 
 		CurrentXCoord += 10;
 	}
 
-	BulletManager* Manager = new BulletManager(WallCoords);
+	BulletManager* Manager = new BulletManager(*Tree);
 
 	int nbFrames = 0;
 	const Float2 StartPos = Float2{SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2};
@@ -151,7 +145,7 @@ int main()
 			glDrawArrays(GL_POINTS, 0, 1);
 		}
 
-		const std::vector<float>& CurrentWalls = Manager->GetWalls();
+		const AABBTree& CurrentWalls = Manager->GetWalls();
 		std::vector<GLfloat> LineVertices;
 		const size_t WallsDoubleNumber = CurrentWalls.size();
 		LineVertices.reserve(WallsDoubleNumber);

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include "AABBTree.h"
 
 struct Float2
 {
@@ -25,22 +26,24 @@ struct Bullet
 class BulletManager
 {
 public:
-	BulletManager(std::vector<float> InWalls) : Walls(InWalls)
+	BulletManager(const AABBTree& InWallsTree) : WallsTree(InWallsTree)
 	{
 	};
 
 	void Update(float time);
 	void Fire(const Float2& StartPosistion, const Float2& StartDirection, float Speed, float StartTime, float LifeTime);
 	const std::vector<Bullet>& GetBullets();
-	const std::vector<float>& GetWalls();
+	// const std::vector<float>& GetWalls();
+	const AABBTree& GetWalls();
 
 private:
 	std::vector<Bullet> Bullets;
-	std::vector<float> Walls;
+	// std::vector<float> Walls;
+	AABBTree WallsTree;
 
-	float Area(Float2 A, Float2 B, Float2 C);
-	bool Intersect(float a, float b, float c, float d);
-	bool Intersect(Float2 A, Float2 B, Float2 C, Float2 D);
-	bool DoesPointHitTheWall(const std::vector<float>& Walls, const Float2& Point, const Float2& PrevPoint, size_t i);
-	int DoesHitTheWall(const Float2& Point, const Float2& PrevPoint);
+	// float Area(Float2 A, Float2 B, Float2 C);
+	// bool Intersect(float a, float b, float c, float d);
+	// bool Intersect(Float2 A, Float2 B, Float2 C, Float2 D);
+	// bool DoesPointHitTheWall(const std::vector<float>& Walls, const Float2& Point, const Float2& PrevPoint, size_t i);
+	// int DoesHitTheWall(const Float2& Point, const Float2& PrevPoint);
 };
