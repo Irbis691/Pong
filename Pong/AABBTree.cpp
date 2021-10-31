@@ -3,324 +3,326 @@
 #include <stack>
 #include "IAABB.h"
 
-AABBTree::AABBTree(unsigned initialSize) : _rootNodeIndex(AABB_NULL_NODE), _allocatedNodeCount(0),
-                                           _nextFreeNodeIndex(0), _nodeCapacity(initialSize), _growthSize(initialSize)
+AABBTree::AABBTree(int InitialSize) : RootNodeIndex(AABB_NULL_NODE), AllocatedNodeCount(0),
+                                           NextFreeNodeIndex(0), NodeCapacity(InitialSize), GrowthSize(InitialSize)
 {
-	_nodes.resize(initialSize);
-	for (unsigned nodeIndex = 0; nodeIndex < initialSize; nodeIndex++)
+	Nodes.resize(InitialSize);
+	for (int NodeIndex = 0; NodeIndex < InitialSize; NodeIndex++)
 	{
-		AABBNode& node = _nodes[nodeIndex];
-		node.nextNodeIndex = nodeIndex + 1;
+		AABBNode& Node = Nodes[NodeIndex];
+		Node.NextNodeIndex = NodeIndex + 1;
 	}
-	_nodes[initialSize - 1].nextNodeIndex = AABB_NULL_NODE;
+	Nodes[InitialSize - 1].NextNodeIndex = AABB_NULL_NODE;
 }
 
 AABBTree::~AABBTree()
 {
 }
 
-bool AABBTree::IsLeaf(const std::shared_ptr<IAABB>& object) const
+bool AABBTree::IsLeaf(const std::shared_ptr<IAABB>& Object) const
 {
-	return _nodes[_objectNodeIndexMap.at(object)].isLeaf();
+	return Nodes[ObjectNodeToIndex.at(Object)].IsLeaf();
 }
 
 std::vector<AABB> AABBTree::GetNodes() const
 {
-	std::vector<AABB> Nodes;
-	for (auto it = _objectNodeIndexMap.begin(); it != _objectNodeIndexMap.end(); ++it)
+	std::vector<AABB> ResultNodes;
+	for (auto It = ObjectNodeToIndex.begin(); It != ObjectNodeToIndex.end(); ++It)
 	{
-		if (_nodes[it->second].isLeaf())
+		if (Nodes[It->second].IsLeaf())
 		{
-			Nodes.push_back((*it->first).getAABB());
+			ResultNodes.push_back((*It->first).GetAABB());
 		}
 	}
-	return Nodes;
+	return ResultNodes;
 }
 
-unsigned AABBTree::allocateNode()
+int AABBTree::AllocateNode()
 {
 	// if we have no free tree GetNodes then grow the pool
-	if (_nextFreeNodeIndex == AABB_NULL_NODE)
+	if (NextFreeNodeIndex == AABB_NULL_NODE)
 	{
-		assert(_allocatedNodeCount == _nodeCapacity);
+		assert(AllocatedNodeCount == NodeCapacity);
 
-		_nodeCapacity += _growthSize;
-		_nodes.resize(_nodeCapacity);
-		for (unsigned nodeIndex = _allocatedNodeCount; nodeIndex < _nodeCapacity; nodeIndex++)
+		NodeCapacity += GrowthSize;
+		Nodes.resize(NodeCapacity);
+		for (int NodeIndex = AllocatedNodeCount; NodeIndex < NodeCapacity; NodeIndex++)
 		{
-			AABBNode& node = _nodes[nodeIndex];
-			node.nextNodeIndex = nodeIndex + 1;
+			AABBNode& Node = Nodes[NodeIndex];
+			Node.NextNodeIndex = NodeIndex + 1;
 		}
-		_nodes[_nodeCapacity - 1].nextNodeIndex = AABB_NULL_NODE;
-		_nextFreeNodeIndex = _allocatedNodeCount;
+		Nodes[NodeCapacity - 1].NextNodeIndex = AABB_NULL_NODE;
+		NextFreeNodeIndex = AllocatedNodeCount;
 	}
 
-	unsigned nodeIndex = _nextFreeNodeIndex;
-	AABBNode& allocatedNode = _nodes[nodeIndex];
-	allocatedNode.parentNodeIndex = AABB_NULL_NODE;
-	allocatedNode.leftNodeIndex = AABB_NULL_NODE;
-	allocatedNode.rightNodeIndex = AABB_NULL_NODE;
-	_nextFreeNodeIndex = allocatedNode.nextNodeIndex;
-	_allocatedNodeCount++;
+	int NodeIndex = NextFreeNodeIndex;
+	AABBNode& AllocatedNode = Nodes[NodeIndex];
+	AllocatedNode.ParentNodeIndex = AABB_NULL_NODE;
+	AllocatedNode.LeftNodeIndex = AABB_NULL_NODE;
+	AllocatedNode.RightNodeIndex = AABB_NULL_NODE;
+	NextFreeNodeIndex = AllocatedNode.NextNodeIndex;
+	AllocatedNodeCount++;
 
-	return nodeIndex;
+	return NodeIndex;
 }
 
-void AABBTree::deallocateNode(unsigned nodeIndex)
+void AABBTree::DeallocateNode(int NodeIndex)
 {
-	AABBNode& deallocatedNode = _nodes[nodeIndex];
-	deallocatedNode.nextNodeIndex = _nextFreeNodeIndex;
-	_nextFreeNodeIndex = nodeIndex;
-	_allocatedNodeCount--;
+	AABBNode& DeallocatedNode = Nodes[NodeIndex];
+	DeallocatedNode.NextNodeIndex = NextFreeNodeIndex;
+	NextFreeNodeIndex = NodeIndex;
+	AllocatedNodeCount--;
 }
 
-void AABBTree::insertObject(const std::shared_ptr<IAABB>& object)
+void AABBTree::InsertObject(const std::shared_ptr<IAABB>& Object)
 {
-	unsigned nodeIndex = allocateNode();
-	AABBNode& node = _nodes[nodeIndex];
+	int NodeIndex = AllocateNode();
+	AABBNode& node = Nodes[NodeIndex];
 
-	node.aabb = object->getAABB();
-	node.object = object;
+	node.aabb = Object->GetAABB();
+	node.Object = Object;
 
-	insertLeaf(nodeIndex);
-	_objectNodeIndexMap[object] = nodeIndex;
+	InsertLeaf(NodeIndex);
+	ObjectNodeToIndex[Object] = NodeIndex;
 }
 
-void AABBTree::removeObject(const std::shared_ptr<IAABB>& object)
+void AABBTree::RemoveObject(const std::shared_ptr<IAABB>& Object)
 {
-	unsigned nodeIndex = _objectNodeIndexMap[object];
-	removeLeaf(nodeIndex);
-	deallocateNode(nodeIndex);
-	_objectNodeIndexMap.erase(object);
+	int NodeIndex = ObjectNodeToIndex[Object];
+	RemoveLeaf(NodeIndex);
+	DeallocateNode(NodeIndex);
+	ObjectNodeToIndex.erase(Object);
 }
 
-void AABBTree::updateObject(const std::shared_ptr<IAABB>& object)
+void AABBTree::UpdateObject(const std::shared_ptr<IAABB>& Object)
 {
-	unsigned nodeIndex = _objectNodeIndexMap[object];
-	updateLeaf(nodeIndex, object->getAABB());
+	int NodeIndex = ObjectNodeToIndex[Object];
+	UpdateLeaf(NodeIndex, Object->GetAABB());
 }
 
-std::forward_list<std::shared_ptr<IAABB>> AABBTree::queryOverlaps(const std::shared_ptr<IAABB>& object) const
+std::forward_list<std::shared_ptr<IAABB>> AABBTree::QueryOverlaps(const std::shared_ptr<IAABB>& Object) const
 {
-	std::forward_list<std::shared_ptr<IAABB>> overlaps;
-	std::stack<unsigned> stack;
-	AABB testAabb = object->getAABB();
+	std::forward_list<std::shared_ptr<IAABB>> Overlaps;
+	std::stack<int> Stack;
+	AABB TestAabb = Object->GetAABB();
 
-	stack.push(_rootNodeIndex);
-	while (!stack.empty())
+	Stack.push(RootNodeIndex);
+	while (!Stack.empty())
 	{
-		unsigned nodeIndex = stack.top();
-		stack.pop();
+		int NodeIndex = Stack.top();
+		Stack.pop();
 
-		if (nodeIndex == AABB_NULL_NODE) continue;
+		if (NodeIndex == AABB_NULL_NODE) continue;
 
-		const AABBNode& node = _nodes[nodeIndex];
-		if (node.aabb.overlaps(testAabb))
+		const AABBNode& Node = Nodes[NodeIndex];
+		if (Node.aabb.Overlaps(TestAabb))
 		{
-			if (node.isLeaf() && node.object != object)
+			if (Node.IsLeaf() && Node.Object != Object)
 			{
-				overlaps.push_front(node.object);
+				Overlaps.push_front(Node.Object);
 			}
 			else
 			{
-				stack.push(node.leftNodeIndex);
-				stack.push(node.rightNodeIndex);
+				Stack.push(Node.LeftNodeIndex);
+				Stack.push(Node.RightNodeIndex);
 			}
 		}
 	}
 
-	return overlaps;
+	return Overlaps;
 }
 
-void AABBTree::insertLeaf(unsigned leafNodeIndex)
+void AABBTree::InsertLeaf(int LeafNodeIndex)
 {
 	// make sure we're inserting a new leaf
-	assert(_nodes[leafNodeIndex].parentNodeIndex == AABB_NULL_NODE);
-	assert(_nodes[leafNodeIndex].leftNodeIndex == AABB_NULL_NODE);
-	assert(_nodes[leafNodeIndex].rightNodeIndex == AABB_NULL_NODE);
+	assert(Nodes[LeafNodeIndex].ParentNodeIndex == AABB_NULL_NODE);
+	assert(Nodes[LeafNodeIndex].LeftNodeIndex == AABB_NULL_NODE);
+	assert(Nodes[LeafNodeIndex].RightNodeIndex == AABB_NULL_NODE);
 
 	// if the tree is empty then we make the root the leaf
-	if (_rootNodeIndex == AABB_NULL_NODE)
+	if (RootNodeIndex == AABB_NULL_NODE)
 	{
-		_rootNodeIndex = leafNodeIndex;
+		RootNodeIndex = LeafNodeIndex;
 		return;
 	}
 
 	// search for the best place to put the new leaf in the tree
 	// we use surface area and depth as search heuristics
-	unsigned treeNodeIndex = _rootNodeIndex;
-	AABBNode& leafNode = _nodes[leafNodeIndex];
-	while (!_nodes[treeNodeIndex].isLeaf())
+	int TreeNodeIndex = RootNodeIndex;
+	AABBNode& LeafNode = Nodes[LeafNodeIndex];
+	while (!Nodes[TreeNodeIndex].IsLeaf())
 	{
 		// because of the test in the while loop above we know we are never a leaf inside it
-		const AABBNode& treeNode = _nodes[treeNodeIndex];
-		unsigned leftNodeIndex = treeNode.leftNodeIndex;
-		unsigned rightNodeIndex = treeNode.rightNodeIndex;
-		const AABBNode& leftNode = _nodes[leftNodeIndex];
-		const AABBNode& rightNode = _nodes[rightNodeIndex];
+		const AABBNode& TreeNode = Nodes[TreeNodeIndex];
+		int LeftNodeIndex = TreeNode.LeftNodeIndex;
+		int RightNodeIndex = TreeNode.RightNodeIndex;
+		const AABBNode& LeftNode = Nodes[LeftNodeIndex];
+		const AABBNode& RightNode = Nodes[RightNodeIndex];
 
-		AABB combinedAabb = treeNode.aabb.merge(leafNode.aabb);
+		const AABB CombinedAABB = TreeNode.aabb.Merge(LeafNode.aabb);
 
-		float newParentNodeCost = 2.0f * combinedAabb.surfaceArea;
-		float minimumPushDownCost = 2.0f * (combinedAabb.surfaceArea - treeNode.aabb.surfaceArea);
+		float NewParentNodeCost = 2.0f * CombinedAABB.SurfaceArea;
+		float MinimumPushDownCost = 2.0f * (CombinedAABB.SurfaceArea - TreeNode.aabb.SurfaceArea);
 
 		// use the costs to figure out whether to create a new parent here or descend
-		float costLeft;
-		float costRight;
-		if (leftNode.isLeaf())
+		float CostLeft;
+		float CostRight;
+		if (LeftNode.IsLeaf())
 		{
-			costLeft = leafNode.aabb.merge(leftNode.aabb).surfaceArea + minimumPushDownCost;
+			CostLeft = LeafNode.aabb.Merge(LeftNode.aabb).SurfaceArea + MinimumPushDownCost;
 		}
 		else
 		{
-			AABB newLeftAabb = leafNode.aabb.merge(leftNode.aabb);
-			costLeft = (newLeftAabb.surfaceArea - leftNode.aabb.surfaceArea) + minimumPushDownCost;
+			AABB NewLeftAabb = LeafNode.aabb.Merge(LeftNode.aabb);
+			CostLeft = (NewLeftAabb.SurfaceArea - LeftNode.aabb.SurfaceArea) + MinimumPushDownCost;
 		}
-		if (rightNode.isLeaf())
+		if (RightNode.IsLeaf())
 		{
-			costRight = leafNode.aabb.merge(rightNode.aabb).surfaceArea + minimumPushDownCost;
+			CostRight = LeafNode.aabb.Merge(RightNode.aabb).SurfaceArea + MinimumPushDownCost;
 		}
 		else
 		{
-			AABB newRightAabb = leafNode.aabb.merge(rightNode.aabb);
-			costRight = (newRightAabb.surfaceArea - rightNode.aabb.surfaceArea) + minimumPushDownCost;
+			AABB NewRightAABB = LeafNode.aabb.Merge(RightNode.aabb);
+			CostRight = (NewRightAABB.SurfaceArea - RightNode.aabb.SurfaceArea) + MinimumPushDownCost;
 		}
 
 		// if the cost of creating a new parent node here is less than descending in either direction then
 		// we know we need to create a new parent node, errrr, here and attach the leaf to that
-		if (newParentNodeCost < costLeft && newParentNodeCost < costRight)
+		if (NewParentNodeCost <= CostLeft && NewParentNodeCost <= CostRight)
 		{
 			break;
 		}
 
 		// otherwise descend in the cheapest direction
-		if (costLeft < costRight)
+		if (CostLeft < CostRight)
 		{
-			treeNodeIndex = leftNodeIndex;
+			TreeNodeIndex = LeftNodeIndex;
 		}
 		else
 		{
-			treeNodeIndex = rightNodeIndex;
+			TreeNodeIndex = RightNodeIndex;
 		}
 	}
 
 	// the leafs sibling is going to be the node we found above and we are going to create a new
 	// parent node and attach the leaf and this item
-	unsigned leafSiblingIndex = treeNodeIndex;
-	AABBNode& leafSibling = _nodes[leafSiblingIndex];
-	unsigned oldParentIndex = leafSibling.parentNodeIndex;
-	unsigned newParentIndex = allocateNode();
-	AABBNode& newParent = _nodes[newParentIndex];
-	newParent.parentNodeIndex = oldParentIndex;
-	newParent.aabb = leafNode.aabb.merge(leafSibling.aabb);
+	const int LeafSiblingIndex = TreeNodeIndex;
+	AABBNode& LeafSibling = Nodes[LeafSiblingIndex];
+	const int OldParentIndex = LeafSibling.ParentNodeIndex;
+	const int NewParentIndex = AllocateNode();
+	AABBNode& NewParent = Nodes[NewParentIndex];
+	NewParent.ParentNodeIndex = OldParentIndex;
+	NewParent.aabb = LeafNode.aabb.Merge(LeafSibling.aabb);
 	// the new parents aabb is the leaf aabb combined with it's siblings aabb
-	newParent.leftNodeIndex = leafSiblingIndex;
-	newParent.rightNodeIndex = leafNodeIndex;
-	leafNode.parentNodeIndex = newParentIndex;
-	leafSibling.parentNodeIndex = newParentIndex;
+	NewParent.LeftNodeIndex = LeafSiblingIndex;
+	NewParent.RightNodeIndex = LeafNodeIndex;
+	LeafNode.ParentNodeIndex = NewParentIndex;
+	LeafSibling.ParentNodeIndex = NewParentIndex;
 
-	if (oldParentIndex == AABB_NULL_NODE)
+	if (OldParentIndex == AABB_NULL_NODE)
 	{
 		// the old parent was the root and so this is now the root
-		_rootNodeIndex = newParentIndex;
+		RootNodeIndex = NewParentIndex;
 	}
 	else
 	{
 		// the old parent was not the root and so we need to patch the left or right index to
 		// point to the new node
-		AABBNode& oldParent = _nodes[oldParentIndex];
-		if (oldParent.leftNodeIndex == leafSiblingIndex)
+		AABBNode& OldParent = Nodes[OldParentIndex];
+		if (OldParent.LeftNodeIndex == LeafSiblingIndex)
 		{
-			oldParent.leftNodeIndex = newParentIndex;
+			OldParent.LeftNodeIndex = NewParentIndex;
 		}
 		else
 		{
-			oldParent.rightNodeIndex = newParentIndex;
+			OldParent.RightNodeIndex = NewParentIndex;
 		}
 	}
 
 	// finally we need to walk back up the tree fixing heights and areas
-	treeNodeIndex = leafNode.parentNodeIndex;
-	fixUpwardsTree(treeNodeIndex);
+	TreeNodeIndex = LeafNode.ParentNodeIndex;
+	FixUpwardsTree(TreeNodeIndex);
 }
 
-void AABBTree::removeLeaf(unsigned leafNodeIndex)
+void AABBTree::RemoveLeaf(int LeafNodeIndex)
 {
 	// if the leaf is the root then we can just clear the root pointer and return
-	if (leafNodeIndex == _rootNodeIndex)
+	if (LeafNodeIndex == RootNodeIndex)
 	{
-		_rootNodeIndex = AABB_NULL_NODE;
+		RootNodeIndex = AABB_NULL_NODE;
 		return;
 	}
 
-	AABBNode& leafNode = _nodes[leafNodeIndex];
-	unsigned parentNodeIndex = leafNode.parentNodeIndex;
-	const AABBNode& parentNode = _nodes[parentNodeIndex];
-	unsigned grandParentNodeIndex = parentNode.parentNodeIndex;
-	unsigned siblingNodeIndex = parentNode.leftNodeIndex == leafNodeIndex
-		                            ? parentNode.rightNodeIndex
-		                            : parentNode.leftNodeIndex;
-	assert(siblingNodeIndex != AABB_NULL_NODE); // we must have a sibling
-	AABBNode& siblingNode = _nodes[siblingNodeIndex];
+	AABBNode& LeafNode = Nodes[LeafNodeIndex];
+	int ParentNodeIndex = LeafNode.ParentNodeIndex;
+	const AABBNode& ParentNode = Nodes[ParentNodeIndex];
+	int GrandParentNodeIndex = ParentNode.ParentNodeIndex;
+	int SiblingNodeIndex = ParentNode.LeftNodeIndex == LeafNodeIndex
+		                            ? ParentNode.RightNodeIndex
+		                            : ParentNode.LeftNodeIndex;
+	assert(SiblingNodeIndex != AABB_NULL_NODE); // we must have a sibling
+	AABBNode& SiblingNode = Nodes[SiblingNodeIndex];
 
-	if (grandParentNodeIndex != AABB_NULL_NODE)
+	if (GrandParentNodeIndex != AABB_NULL_NODE)
 	{
 		// if we have a grand parent (i.e. the parent is not the root) then destroy the parent and connect the sibling to the grandparent in its
 		// place
-		AABBNode& grandParentNode = _nodes[grandParentNodeIndex];
-		if (grandParentNode.leftNodeIndex == parentNodeIndex)
+		AABBNode& GrandParentNode = Nodes[GrandParentNodeIndex];
+		if (GrandParentNode.LeftNodeIndex == ParentNodeIndex)
 		{
-			grandParentNode.leftNodeIndex = siblingNodeIndex;
+			GrandParentNode.LeftNodeIndex = SiblingNodeIndex;
 		}
 		else
 		{
-			grandParentNode.rightNodeIndex = siblingNodeIndex;
+			GrandParentNode.RightNodeIndex = SiblingNodeIndex;
 		}
-		siblingNode.parentNodeIndex = grandParentNodeIndex;
-		deallocateNode(parentNodeIndex);
+		SiblingNode.ParentNodeIndex = GrandParentNodeIndex;
+		DeallocateNode(ParentNodeIndex);
 
-		fixUpwardsTree(grandParentNodeIndex);
+		FixUpwardsTree(GrandParentNodeIndex);
 	}
 	else
 	{
 		// if we have no grandparent then the parent is the root and so our sibling becomes the root and has it's parent removed
-		_rootNodeIndex = siblingNodeIndex;
-		siblingNode.parentNodeIndex = AABB_NULL_NODE;
-		deallocateNode(parentNodeIndex);
+		RootNodeIndex = SiblingNodeIndex;
+		SiblingNode.ParentNodeIndex = AABB_NULL_NODE;
+		DeallocateNode(ParentNodeIndex);
 	}
 
-	leafNode.parentNodeIndex = AABB_NULL_NODE;
+	LeafNode.ParentNodeIndex = AABB_NULL_NODE;
 }
 
-void AABBTree::updateLeaf(unsigned leafNodeIndex, const AABB& newAaab)
+void AABBTree::UpdateLeaf(int LeafNodeIndex, const AABB& NewAABB)
 {
-	AABBNode& node = _nodes[leafNodeIndex];
+	AABBNode& Node = Nodes[LeafNodeIndex];
 
-	// if the node contains the new aabb then we just leave things
+	// if the node Contains the new aabb then we just leave things
 	// TODO: when we add velocity this check should kick in as often an update will lie within the velocity fattened initial aabb
 	// to support this we might need to differentiate between velocity fattened aabb and actual aabb
-	if (node.aabb.contains(newAaab)) return;
+	if (Node.aabb.Contains(NewAABB)) return;
 
-	removeLeaf(leafNodeIndex);
-	node.aabb = newAaab;
-	insertLeaf(leafNodeIndex);
+	RemoveLeaf(LeafNodeIndex);
+	Node.aabb = NewAABB;
+	InsertLeaf(LeafNodeIndex);
 }
 
 
-void AABBTree::fixUpwardsTree(unsigned treeNodeIndex)
+void AABBTree::FixUpwardsTree(int TreeNodeIndex)
 {
-	while (treeNodeIndex != AABB_NULL_NODE)
+	while (TreeNodeIndex != AABB_NULL_NODE)
 	{
-		AABBNode& treeNode = _nodes[treeNodeIndex];
+		AABBNode& TreeNode = Nodes[TreeNodeIndex];
 
 		// every node should be a parent
-		assert(treeNode.leftNodeIndex != AABB_NULL_NODE && treeNode.rightNodeIndex != AABB_NULL_NODE);
+		assert(TreeNode.LeftNodeIndex != AABB_NULL_NODE && TreeNode.RightNodeIndex != AABB_NULL_NODE);
 
 		// fix height and area
-		const AABBNode& leftNode = _nodes[treeNode.leftNodeIndex];
-		const AABBNode& rightNode = _nodes[treeNode.rightNodeIndex];
-		treeNode.aabb = leftNode.aabb.merge(rightNode.aabb);
+		AABBNode& LeftNode = Nodes[TreeNode.LeftNodeIndex];
+		AABBNode& RightNode = Nodes[TreeNode.RightNodeIndex];
+		TreeNode.aabb = LeftNode.aabb.Merge(RightNode.aabb);
+		LeftNode.ParentNodeIndex = TreeNodeIndex;
+		RightNode.ParentNodeIndex = TreeNodeIndex;
 
-		treeNodeIndex = treeNode.parentNodeIndex;
+		TreeNodeIndex = TreeNode.ParentNodeIndex;
 	}
 }

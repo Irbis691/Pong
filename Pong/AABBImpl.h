@@ -3,18 +3,18 @@
 #include "IAABB.h"
 
 class AABBImpl : public IAABB {
-	float minX;
-	float minY;
-	float maxX;
-	float maxY;
+	float MinX;
+	float MinY;
+	float MaxX;
+	float MaxY;
 
 public:
-	AABBImpl(float min_x, float min_y, float max_x, float max_y)
-		: minX(min_x),
-		minY(min_y),
-		maxX(max_x),
-		maxY(max_y) {
+	AABBImpl(float MinX, float MinY, float MaxX, float MaxY)
+		: MinX(MinX),
+		MinY(MinY),
+		MaxX(MaxX),
+		MaxY(MaxY) {
 	}
 
-	AABB getAABB() const override;
+	AABB GetAABB() const override;
 };

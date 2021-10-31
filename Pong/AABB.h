@@ -4,87 +4,87 @@
 struct AABB
 {
 private:
-	float calculateSurfaceArea() const
+	float CalculateSurfaceArea() const
 	{
-		return getWidth() * getHeight();
+		return GetWidth() * GetHeight();
 	}
 
 public:
-	float minX;
-	float minY;
-	float maxX;
-	float maxY;
-	float surfaceArea;
+	float MinX;
+	float MinY;
+	float MaxX;
+	float MaxY;
+	float SurfaceArea;
 
-	AABB() : minX(0.0f), minY(0.0f), maxX(0.0f), maxY(0.0f), surfaceArea(0.0f)
+	AABB() : MinX(0.0f), MinY(0.0f), MaxX(0.0f), MaxY(0.0f), SurfaceArea(0.0f)
 	{
 	}
 
-	AABB(unsigned minX, unsigned minY, unsigned maxX, unsigned maxY) :
-		AABB(static_cast<float>(minX), static_cast<float>(minY), static_cast<float>(maxX), static_cast<float>(maxY))
+	AABB(int MinX, int MinY, int MaxX, int MaxY) :
+		AABB(static_cast<float>(MinX), static_cast<float>(MinY), static_cast<float>(MaxX), static_cast<float>(MaxY))
 	{
 	}
 
-	AABB(float minX, float minY, float maxX, float maxY) :
-		minX(minX), minY(minY), maxX(maxX), maxY(maxY)
+	AABB(float MinX, float MinY, float MaxX, float MaxY) :
+		MinX(MinX), MinY(MinY), MaxX(MaxX), MaxY(MaxY)
 	{
-		surfaceArea = calculateSurfaceArea();
+		SurfaceArea = CalculateSurfaceArea();
 	}
 
-	friend bool operator==(const AABB& lhs, const AABB& rhs)
+	friend bool operator==(const AABB& Lhs, const AABB& Rhs)
 	{
-		return lhs.minX == rhs.minX
-			&& lhs.minY == rhs.minY
-			&& lhs.maxX == rhs.maxX
-			&& lhs.maxY == rhs.maxY;
+		return Lhs.MinX == Rhs.MinX
+			&& Lhs.MinY == Rhs.MinY
+			&& Lhs.MaxX == Rhs.MaxX
+			&& Lhs.MaxY == Rhs.MaxY;
 	}
 
-	friend bool operator!=(const AABB& lhs, const AABB& rhs)
+	friend bool operator!=(const AABB& Lhs, const AABB& Rhs)
 	{
-		return !(lhs == rhs);
+		return !(Lhs == Rhs);
 	}
 
-	bool overlaps(const AABB& other) const
+	bool Overlaps(const AABB& Other) const
 	{
 		// y is deliberately first in the list of checks below as it is seen as more likely than things
 		// collide on x,z but not on y than they do on y thus we drop out sooner on a y fail
-		return maxX >= other.minX &&
-			minX <= other.maxX &&
-			maxY >= other.minY &&
-			minY <= other.maxY;
+		return MaxX >= Other.MinX &&
+			MinX <= Other.MaxX &&
+			MaxY >= Other.MinY &&
+			MinY <= Other.MaxY;
 	}
 
-	bool contains(const AABB& other) const
+	bool Contains(const AABB& Other) const
 	{
-		return other.minX >= minX &&
-			other.maxX <= maxX &&
-			other.minY >= minY &&
-			other.maxY <= maxY;
+		return Other.MinX >= MinX &&
+			Other.MaxX <= MaxX &&
+			Other.MinY >= MinY &&
+			Other.MaxY <= MaxY;
 	}
 
-	AABB merge(const AABB& other) const
+	AABB Merge(const AABB& Other) const
 	{
 		return AABB(
-			std::min(minX, other.minX), std::min(minY, other.minY),
-			std::max(maxX, other.maxX), std::max(maxY, other.maxY)
+			std::min(MinX, Other.MinX), std::min(MinY, Other.MinY),
+			std::max(MaxX, Other.MaxX), std::max(MaxY, Other.MaxY)
 		);
 	}
 
-	AABB intersection(const AABB& other) const
+	AABB Intersection(const AABB& Other) const
 	{
 		return AABB(
-			std::max(minX, other.minX), std::max(minY, other.minY),
-			std::min(maxX, other.maxX), std::min(maxY, other.maxY)
+			std::max(MinX, Other.MinX), std::max(MinY, Other.MinY),
+			std::min(MaxX, Other.MaxX), std::min(MaxY, Other.MaxY)
 		);
 	}
 
-	float getWidth() const
+	float GetWidth() const
 	{
-		return maxX - minX;
+		return MaxX - MinX;
 	}
 
-	float getHeight() const
+	float GetHeight() const
 	{
-		return maxY - minY;
+		return MaxY - MinY;
 	}
 };

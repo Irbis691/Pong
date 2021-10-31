@@ -3,19 +3,21 @@
 #include "AABBImpl.h"
 #include "BulletManager.h"
 
-#define SCREEN_WIDTH 1920
-#define SCREEN_HEIGHT 1080
+#define SCREEN_WIDTH 3440
+#define SCREEN_HEIGHT 1440
 
 int main()
 {
-	constexpr int BulletAmount = 1;
+	constexpr int BulletAmount = 500;
+	constexpr int WallLength = 10;
+	constexpr int DistanceBetweenWalls = 10;
 	constexpr float BulletStartDirectionXCoord = -0.8f;
 	constexpr float BulletEndDirectionXCoord = 0.8f;
-	constexpr int WallsCollsAmount = 50;
-	constexpr int WallsRowsAmount = 1;
+	constexpr int WallsCollsAmount = 100;
+	constexpr int WallsRowsAmount = 5;
 	constexpr int WallCoordsNumber = 2;
 	constexpr int WallsCoordsAmount = WallsRowsAmount * WallsCollsAmount * WallCoordsNumber;
-	constexpr float WallsStartXCoord = 480.0f;
+	constexpr float WallsStartXCoord = 600.0f;
 	constexpr float WallsStartYCoord = 810.0f;
 	constexpr float Speed = 3.0f;
 	constexpr float LifeTime = 15.0f;
@@ -68,9 +70,9 @@ int main()
 		WallCoords.push_back(CurrentXCoord);
 		WallCoords.push_back(CurrentYCoord);
 
-		Tree->insertObject(std::make_shared<AABBImpl>(CurrentXCoord, CurrentYCoord, CurrentXCoord + 10, CurrentYCoord));
+		Tree->InsertObject(std::make_shared<AABBImpl>(CurrentXCoord, CurrentYCoord, CurrentXCoord + WallLength, CurrentYCoord));
 
-		CurrentXCoord += 20;
+		CurrentXCoord += WallLength + DistanceBetweenWalls;
 	}
 
 	BulletManager* Manager = new BulletManager(*Tree);
@@ -86,7 +88,7 @@ int main()
 		const float CurrentXCoord = BulletStartDirectionXCoord + i * XCoordRangeStep;
 		const float CurrentYCoord = sqrt(1 - CurrentXCoord * CurrentXCoord);
 		const Float2 StartDirection = Float2{CurrentXCoord, CurrentYCoord};
-		Manager->Fire(StartPos, {0, 1}, StartTime, LifeTime, Speed);
+		Manager->Fire(StartPos, StartDirection, StartTime, LifeTime, Speed);
 	}
 
 	// Loop until the user closes the window

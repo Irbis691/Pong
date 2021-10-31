@@ -11,18 +11,18 @@
 struct AABBNode
 {
 	AABB aabb;
-	std::shared_ptr<IAABB> object;
+	std::shared_ptr<IAABB> Object;
 	// tree links
-	unsigned parentNodeIndex;
-	unsigned leftNodeIndex;
-	unsigned rightNodeIndex;
+	int ParentNodeIndex;
+	int LeftNodeIndex;
+	int RightNodeIndex;
 	// node linked list link
-	unsigned nextNodeIndex;
+	int NextNodeIndex;
 
-	bool isLeaf() const { return leftNodeIndex == AABB_NULL_NODE; }
+	bool IsLeaf() const { return LeftNodeIndex == AABB_NULL_NODE; }
 
-	AABBNode() : object(nullptr), parentNodeIndex(AABB_NULL_NODE), leftNodeIndex(AABB_NULL_NODE),
-	             rightNodeIndex(AABB_NULL_NODE), nextNodeIndex(AABB_NULL_NODE)
+	AABBNode() : Object(nullptr), ParentNodeIndex(AABB_NULL_NODE), LeftNodeIndex(AABB_NULL_NODE),
+	             RightNodeIndex(AABB_NULL_NODE), NextNodeIndex(AABB_NULL_NODE)
 	{
 	}
 };
@@ -30,29 +30,29 @@ struct AABBNode
 class AABBTree
 {
 public:
-	AABBTree(unsigned initialSize);
+	AABBTree(int InitialSize);
 	~AABBTree();
 
-	bool IsLeaf(const std::shared_ptr<IAABB>& object) const;
+	bool IsLeaf(const std::shared_ptr<IAABB>& Object) const;
 	std::vector<AABB> GetNodes() const;
-	void insertObject(const std::shared_ptr<IAABB>& object);
-	void removeObject(const std::shared_ptr<IAABB>& object);
-	void updateObject(const std::shared_ptr<IAABB>& object);
-	std::forward_list<std::shared_ptr<IAABB>> queryOverlaps(const std::shared_ptr<IAABB>& object) const;
+	void InsertObject(const std::shared_ptr<IAABB>& Object);
+	void RemoveObject(const std::shared_ptr<IAABB>& Object);
+	void UpdateObject(const std::shared_ptr<IAABB>& Object);
+	std::forward_list<std::shared_ptr<IAABB>> QueryOverlaps(const std::shared_ptr<IAABB>& Object) const;
 
 private:
-	std::map<std::shared_ptr<IAABB>, unsigned> _objectNodeIndexMap;
-	std::vector<AABBNode> _nodes;
-	unsigned _rootNodeIndex;
-	unsigned _allocatedNodeCount;
-	unsigned _nextFreeNodeIndex;
-	unsigned _nodeCapacity;
-	unsigned _growthSize;
+	std::map<std::shared_ptr<IAABB>, int> ObjectNodeToIndex;
+	std::vector<AABBNode> Nodes;
+	int RootNodeIndex;
+	int AllocatedNodeCount;
+	int NextFreeNodeIndex;
+	int NodeCapacity;
+	int GrowthSize;
 
-	unsigned allocateNode();
-	void deallocateNode(unsigned nodeIndex);
-	void insertLeaf(unsigned leafNodeIndex);
-	void removeLeaf(unsigned leafNodeIndex);
-	void updateLeaf(unsigned leafNodeIndex, const AABB& newAaab);
-	void fixUpwardsTree(unsigned treeNodeIndex);
+	int AllocateNode();
+	void DeallocateNode(int NodeIndex);
+	void InsertLeaf(int LeafNodeIndex);
+	void RemoveLeaf(int LeafNodeIndex);
+	void UpdateLeaf(int LeafNodeIndex, const AABB& NewAABB);
+	void FixUpwardsTree(int TreeNodeIndex);
 };
