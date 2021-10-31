@@ -28,11 +28,11 @@ class BulletManager
 public:
 	BulletManager(const AABBTree& InWallsTree) : WallsTree(InWallsTree)
 	{
-	}
+	};
 
-	void Update(float time);
-	void Fire(const Float2& StartPosistion, const Float2& StartDirection, float StartTime, float LifeTime, float Speed);
-	const std::vector<Bullet>& GetBullets();
+	void Update(float Time);
+	void Fire(const Float2& StartPosition, const Float2& StartDirection, float StartTime, float LifeTime, float Speed);
+	const std::vector<Bullet>& GetBullets(float Time);
 	std::vector<float> GetWalls();
 
 private:

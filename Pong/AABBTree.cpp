@@ -4,7 +4,7 @@
 #include "IAABB.h"
 
 AABBTree::AABBTree(int InitialSize) : RootNodeIndex(AABB_NULL_NODE), AllocatedNodeCount(0),
-                                           NextFreeNodeIndex(0), NodeCapacity(InitialSize), GrowthSize(InitialSize)
+                                      NextFreeNodeIndex(0), NodeCapacity(InitialSize), GrowthSize(InitialSize)
 {
 	Nodes.resize(InitialSize);
 	for (int NodeIndex = 0; NodeIndex < InitialSize; NodeIndex++)
@@ -17,11 +17,6 @@ AABBTree::AABBTree(int InitialSize) : RootNodeIndex(AABB_NULL_NODE), AllocatedNo
 
 AABBTree::~AABBTree()
 {
-}
-
-bool AABBTree::IsLeaf(const std::shared_ptr<IAABB>& Object) const
-{
-	return Nodes[ObjectNodeToIndex.at(Object)].IsLeaf();
 }
 
 std::vector<AABB> AABBTree::GetNodes() const
@@ -77,10 +72,10 @@ void AABBTree::DeallocateNode(int NodeIndex)
 void AABBTree::InsertObject(const std::shared_ptr<IAABB>& Object)
 {
 	int NodeIndex = AllocateNode();
-	AABBNode& node = Nodes[NodeIndex];
+	AABBNode& Node = Nodes[NodeIndex];
 
-	node.aabb = Object->GetAABB();
-	node.Object = Object;
+	Node.aabb = Object->GetAABB();
+	Node.Object = Object;
 
 	InsertLeaf(NodeIndex);
 	ObjectNodeToIndex[Object] = NodeIndex;
@@ -92,12 +87,6 @@ void AABBTree::RemoveObject(const std::shared_ptr<IAABB>& Object)
 	RemoveLeaf(NodeIndex);
 	DeallocateNode(NodeIndex);
 	ObjectNodeToIndex.erase(Object);
-}
-
-void AABBTree::UpdateObject(const std::shared_ptr<IAABB>& Object)
-{
-	int NodeIndex = ObjectNodeToIndex[Object];
-	UpdateLeaf(NodeIndex, Object->GetAABB());
 }
 
 std::forward_list<std::shared_ptr<IAABB>> AABBTree::QueryOverlaps(const std::shared_ptr<IAABB>& Object) const
@@ -112,7 +101,10 @@ std::forward_list<std::shared_ptr<IAABB>> AABBTree::QueryOverlaps(const std::sha
 		int NodeIndex = Stack.top();
 		Stack.pop();
 
-		if (NodeIndex == AABB_NULL_NODE) continue;
+		if (NodeIndex == AABB_NULL_NODE)
+		{
+			continue;
+		}
 
 		const AABBNode& Node = Nodes[NodeIndex];
 		if (Node.aabb.Overlaps(TestAabb))
@@ -258,8 +250,8 @@ void AABBTree::RemoveLeaf(int LeafNodeIndex)
 	const AABBNode& ParentNode = Nodes[ParentNodeIndex];
 	int GrandParentNodeIndex = ParentNode.ParentNodeIndex;
 	int SiblingNodeIndex = ParentNode.LeftNodeIndex == LeafNodeIndex
-		                            ? ParentNode.RightNodeIndex
-		                            : ParentNode.LeftNodeIndex;
+		                       ? ParentNode.RightNodeIndex
+		                       : ParentNode.LeftNodeIndex;
 	assert(SiblingNodeIndex != AABB_NULL_NODE); // we must have a sibling
 	AABBNode& SiblingNode = Nodes[SiblingNodeIndex];
 
@@ -292,21 +284,6 @@ void AABBTree::RemoveLeaf(int LeafNodeIndex)
 	LeafNode.ParentNodeIndex = AABB_NULL_NODE;
 }
 
-void AABBTree::UpdateLeaf(int LeafNodeIndex, const AABB& NewAABB)
-{
-	AABBNode& Node = Nodes[LeafNodeIndex];
-
-	// if the node Contains the new aabb then we just leave things
-	// TODO: when we add velocity this check should kick in as often an update will lie within the velocity fattened initial aabb
-	// to support this we might need to differentiate between velocity fattened aabb and actual aabb
-	if (Node.aabb.Contains(NewAABB)) return;
-
-	RemoveLeaf(LeafNodeIndex);
-	Node.aabb = NewAABB;
-	InsertLeaf(LeafNodeIndex);
-}
-
-
 void AABBTree::FixUpwardsTree(int TreeNodeIndex)
 {
 	while (TreeNodeIndex != AABB_NULL_NODE)
@@ -322,7 +299,6 @@ void AABBTree::FixUpwardsTree(int TreeNodeIndex)
 		TreeNode.aabb = LeftNode.aabb.Merge(RightNode.aabb);
 		LeftNode.ParentNodeIndex = TreeNodeIndex;
 		RightNode.ParentNodeIndex = TreeNodeIndex;
-
 		TreeNodeIndex = TreeNode.ParentNodeIndex;
 	}
 }

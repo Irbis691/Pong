@@ -1,19 +1,22 @@
 #pragma once
 
+#include <algorithm>
 #include "IAABB.h"
 
-class AABBImpl : public IAABB {
+class AABBImpl : public IAABB
+{
 	float MinX;
 	float MinY;
 	float MaxX;
 	float MaxY;
 
 public:
-	AABBImpl(float MinX, float MinY, float MaxX, float MaxY)
-		: MinX(MinX),
-		MinY(MinY),
-		MaxX(MaxX),
-		MaxY(MaxY) {
+	AABBImpl(float FirstX, float SecondX, float FirstY, float SecondY)
+		: MinX(std::min(FirstX, SecondX)),
+		  MinY(std::min(FirstY, SecondY)),
+		  MaxX(std::max(FirstX, SecondX)),
+		  MaxY(std::max(FirstY, SecondY))
+	{
 	}
 
 	AABB GetAABB() const override;

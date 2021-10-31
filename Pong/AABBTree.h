@@ -33,11 +33,9 @@ public:
 	AABBTree(int InitialSize);
 	~AABBTree();
 
-	bool IsLeaf(const std::shared_ptr<IAABB>& Object) const;
 	std::vector<AABB> GetNodes() const;
 	void InsertObject(const std::shared_ptr<IAABB>& Object);
 	void RemoveObject(const std::shared_ptr<IAABB>& Object);
-	void UpdateObject(const std::shared_ptr<IAABB>& Object);
 	std::forward_list<std::shared_ptr<IAABB>> QueryOverlaps(const std::shared_ptr<IAABB>& Object) const;
 
 private:
@@ -53,6 +51,5 @@ private:
 	void DeallocateNode(int NodeIndex);
 	void InsertLeaf(int LeafNodeIndex);
 	void RemoveLeaf(int LeafNodeIndex);
-	void UpdateLeaf(int LeafNodeIndex, const AABB& NewAABB);
 	void FixUpwardsTree(int TreeNodeIndex);
 };

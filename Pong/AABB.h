@@ -46,12 +46,14 @@ public:
 
 	bool Overlaps(const AABB& Other) const
 	{
+		double round1 = round(MaxX);
+		double round2 = round(Other.MinX);
 		// y is deliberately first in the list of checks below as it is seen as more likely than things
 		// collide on x,z but not on y than they do on y thus we drop out sooner on a y fail
-		return MaxX >= Other.MinX &&
-			MinX <= Other.MaxX &&
-			MaxY >= Other.MinY &&
-			MinY <= Other.MaxY;
+		return round1 >= round2 &&
+			round(MinX) <= round(Other.MaxX) &&
+			round(MaxY) >= round(Other.MinY) &&
+			round(MinY) <= round(Other.MaxY);
 	}
 
 	bool Contains(const AABB& Other) const
