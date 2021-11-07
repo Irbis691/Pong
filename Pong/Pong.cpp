@@ -4,21 +4,21 @@
 #include "AABBImpl.h"
 #include "BulletManager.h"
 
-// #define SCREEN_WIDTH 1920
-// #define SCREEN_HEIGHT 1080
-#define SCREEN_WIDTH 3440
-#define SCREEN_HEIGHT 1440
+#define SCREEN_WIDTH 1920
+#define SCREEN_HEIGHT 1080
+// #define SCREEN_WIDTH 3440
+// #define SCREEN_HEIGHT 1440
 
 int main()
 {
 	constexpr int BulletAmount = 100;
-	constexpr int WallMaxLength = 500;
+	constexpr int WallMaxLength = 300;
 	constexpr int WallMinLength = 30;
 	constexpr int WallsAmount = 1000;
 	constexpr int WallCoordsNumber = 2;
-	constexpr int NumberOfFires = 10;
-	constexpr float Speed = 5.0f;
-	constexpr float LifeTime = 60.0f;
+	constexpr int NumberOfFires = 3;
+	constexpr float Speed = 3.0f;
+	constexpr float LifeTime = 30.0f;
 
 	GLFWwindow* window;
 
