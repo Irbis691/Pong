@@ -12,7 +12,7 @@
 int main()
 {
 	constexpr int BulletAmount = 100;
-	constexpr int WallMaxLength = 300;
+	constexpr int WallMaxLength = 500;
 	constexpr int WallMinLength = 30;
 	constexpr int WallsAmount = 1000;
 	constexpr int WallCoordsNumber = 2;

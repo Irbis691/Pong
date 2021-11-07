@@ -2,8 +2,6 @@
 #include <future>
 #include "AABBImpl.h"
 
-#define SEGMENT_COORDS_AMOUNT 4
-
 float BulletManager::Area(Float2 A, Float2 B, Float2 C)
 {
 	return (B.X - A.X) * (C.Y - A.Y) - (B.Y - A.Y) * (C.X - A.X);
@@ -37,23 +35,20 @@ Float2 BulletManager::CalculateReflectedDirection(Bullet& b, const Float2& PrevP
 	const Float2 Normal = {AABB.MinY - AABB.MaxY, AABB.MaxX - AABB.MinX};
 	const float NormalLength = sqrt(Normal.X * Normal.X + Normal.Y * Normal.Y);
 	const Float2 NormalNormalized = {Normal.X / NormalLength, Normal.Y / NormalLength};
-	const float floatDotProduct = 2 * (FallingVector.X * NormalNormalized.X + FallingVector.Y *
-		NormalNormalized.Y);
-	const Float2 Subtrahend = {
-		floatDotProduct * NormalNormalized.X, floatDotProduct * NormalNormalized.Y
-	};
+	const float floatDotProduct = 2 * (FallingVector.X * NormalNormalized.X + FallingVector.Y * NormalNormalized.Y);
+	const Float2 Subtrahend = {floatDotProduct * NormalNormalized.X, floatDotProduct * NormalNormalized.Y};
 	const Float2 Reflected = {FallingVector.X - Subtrahend.X, FallingVector.Y - Subtrahend.Y};
 	const float ReflectedLength = sqrt(Reflected.X * Reflected.X + Reflected.Y * Reflected.Y);
-	 return {Reflected.X / ReflectedLength, Reflected.Y / ReflectedLength};
+	return {Reflected.X / ReflectedLength, Reflected.Y / ReflectedLength};
 }
 
-void BulletManager::RemoveWallIfHit(const std::shared_ptr<IAABB>& Wall, Bullet& b, const Float2& PrevPos)
+void BulletManager::RemoveWallIfHit(const std::shared_ptr<IAABB>& InAABB, Bullet& b, const Float2& PrevPos)
 {
-	const auto AABB = Wall->GetAABB();
+	const auto AABB = InAABB->GetAABB();
 	const bool DoesHit = DoesPointHitTheWall(AABB, b.Position, PrevPos);
 	if (DoesHit)
 	{
-		WallsTree.RemoveObject(Wall);
+		WallsTree.RemoveObject(InAABB);
 		const Float2 NormalizedReflected = CalculateReflectedDirection(b, PrevPos, AABB);
 		b.Direction.X = NormalizedReflected.X;
 		b.Direction.Y = NormalizedReflected.Y;
@@ -75,7 +70,7 @@ std::vector<float> BulletManager::GetWalls()
 	return Result;
 }
 
-const std::vector<Bullet>& BulletManager::GetBullets(float Time)
+const std::vector<Bullet>& BulletManager::GetBullets(float Time) const
 {
 	return Bullets;
 }
@@ -90,16 +85,17 @@ void BulletManager::Update(float Time)
 			b.Position.X += b.Direction.X * b.Speed;
 			b.Position.Y += b.Direction.Y * b.Speed;
 
-			auto WallsToRemove = WallsTree.QueryOverlaps(
+			auto OverlapedAABB = WallsTree.QueryOverlaps(
 				std::make_shared<AABBImpl>(PrevPos.X, b.Position.X, PrevPos.Y, b.Position.Y));
 
-			for (const auto Wall : WallsToRemove)
+			for (const auto AABB : OverlapedAABB)
 			{
-				RemoveWallIfHit(Wall, b, PrevPos);
+				RemoveWallIfHit(AABB, b, PrevPos);
 			}
 		}
 	}
-	Bullets.erase(std::remove_if(Bullets.begin(), Bullets.end(), [Time](const Bullet& b) {
+	Bullets.erase(std::remove_if(Bullets.begin(), Bullets.end(), [Time](const Bullet& b)
+	{
 		return !b.IsAlive(Time);
 	}), Bullets.end());
 }
