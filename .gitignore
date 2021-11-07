@@ -29,6 +29,7 @@ x64/
 *.la
 *.a
 *.lib
+*.vcxproj*
 
 # Executables
 *.exe
